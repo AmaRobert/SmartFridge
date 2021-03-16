@@ -1,1 +1,1 @@
-# smartFridge
+# SmartFridge
