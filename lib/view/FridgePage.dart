@@ -27,9 +27,43 @@ class _FridgePage extends State<FridgePage>{
         backgroundColor: AppColors().navy,
         title: Text("My Fridge",
           style: TextStyle(
+            fontSize: 25,
             color: AppColors().ligh_grey
           ),
         ),
+        actions: <Widget>[
+          IconButton(
+            iconSize: 40,
+            icon: Icon(
+              Icons.search,
+              color: AppColors().ligh_grey,
+            ),
+            onPressed: () {
+              // do something
+            },
+          ),
+          IconButton(
+            iconSize: 40,
+            icon: Icon(
+              Icons.filter_alt,
+              color: AppColors().ligh_grey,
+            ),
+            onPressed: () {
+              // do something
+            },
+          ),
+          IconButton(
+            iconSize: 40,
+            icon: Icon(
+              Icons.account_circle,
+              color: AppColors().ligh_grey,
+            ),
+            onPressed: () {
+              // do something
+            },
+          ),
+
+        ],
       ),
       body: Container(
         child: GridView.count(
@@ -40,6 +74,13 @@ class _FridgePage extends State<FridgePage>{
               );
             }),
           ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: (){
+
+        },
+        child: Icon(Icons.add,size: 40,color: AppColors().ligh_grey),
+        backgroundColor: AppColors().navy,
       ),
     );
   }

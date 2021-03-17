@@ -1,36 +1,75 @@
 import 'package:flutter/material.dart';
 import 'package:smart_fridge/view/FridgePage.dart';
+import 'package:smart_fridge/view/ShoppingPage.dart';
+import 'package:smart_fridge/view/RecipesPage.dart';
+import 'package:smart_fridge/view/StatisticsPage.dart';
+import 'package:smart_fridge/utils/AppColors.dart';
 
-void main() => runApp(MaterialApp(
-  title: "Smart Fridge",
-  home: MyApp(),
-));
+void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Main Page"),
-        centerTitle: true,
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            ElevatedButton(
-              child: Text("Home Section"),
-              onPressed: (){
-                Navigator.push(context, MaterialPageRoute(builder: (context) => FridgePage()));
-              },
-            )
-          ],
-        )
-      ),
+    return MaterialApp(
+    home: MyBottomNavigationBar(),
     );
   }
 }
 
+class MyBottomNavigationBar extends StatefulWidget {
+  @override
+  _MyBottomNavigationBarState createState() => _MyBottomNavigationBarState();
+}
+
+class _MyBottomNavigationBarState extends State<MyBottomNavigationBar> {
+  int _currentIndex = 0;
+  final List<Widget> _children = [
+    FridgePage(),
+    ShoppingPage(),
+    RecipesPage(),
+    StatisticsPage()
+  ];
+
+  void onTappedBar(int index){
+    setState((){
+      _currentIndex = index;
+    });
+  }
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
+      body: _children[_currentIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        onTap: onTappedBar,
+        currentIndex: _currentIndex,
+        selectedItemColor: AppColors().ligh_grey,
+        unselectedItemColor: AppColors().dark_grey,
+
+        items: [
+          BottomNavigationBarItem(
+            icon: new Icon(Icons.home),
+            backgroundColor: AppColors().navy,
+            label:  "Home"
+          ),
+          BottomNavigationBarItem(
+            icon: new Icon(Icons.shopping_cart),
+            backgroundColor: AppColors().navy,
+            label:  "Shopping"
+          ),
+          BottomNavigationBarItem(
+            icon: new Icon(Icons.fastfood),
+            backgroundColor: AppColors().navy,
+            label:  "Recipes"
+          ),
+          BottomNavigationBarItem(
+            icon: new Icon(Icons.analytics),
+            backgroundColor: AppColors().navy,
+            label:  "Statistics"
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 
