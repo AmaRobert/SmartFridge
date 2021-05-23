@@ -36,4 +36,12 @@ class RepositoryServer{
   int size(){
     return productList.length;
   }
+
+  List<Product> searchProductByName(String productName){
+    List<Product> foundProducts = new List<Product>();
+    for(Product product in productList){
+      if(productName == product.name)
+        foundProducts.add(product);
+    }
+  }
 }

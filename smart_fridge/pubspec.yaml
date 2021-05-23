@@ -25,6 +25,14 @@ dependencies:
   path_provider:
   flutter:
     sdk: flutter
+  webview_flutter: any
+  flutter_barcode_scanner: ^1.0.1
+  firebase_auth:
+  google_sign_in:
+  firebase_core:
+  font_awesome_flutter:
+  google_fonts:
+  cloud_firestore: "^0.16.0+1"
 
 
   # The following adds the Cupertino Icons font to your application.

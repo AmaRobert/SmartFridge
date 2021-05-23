@@ -5,6 +5,9 @@ import 'package:smart_fridge/utils/AppColors.dart';
 import 'package:smart_fridge/utils/ServerProvider.dart';
 import 'package:smart_fridge/view_models/IconsList.dart';
 import 'package:smart_fridge/view_models/RepositoryServer.dart';
+import 'package:smart_fridge/view/AddProductPage.dart';
+
+import 'FunkyDialog.dart';
 
 class FridgePage extends StatefulWidget{
   State<StatefulWidget> createState() => _FridgePage();
@@ -14,7 +17,7 @@ class FridgePage extends StatefulWidget{
 class _FridgePage extends State<FridgePage>{
 
   @override
-  void initState() {
+  void initState(){
     super.initState();
     widget.serverRepository.init();
 
@@ -31,7 +34,7 @@ class _FridgePage extends State<FridgePage>{
         crossAxisCount: 4,
         children: List.generate(widget.serverRepository.size(), (index){
           return Center(
-            child: productCard(widget.serverRepository.getProduct(index + 1)),
+            child: productCard(productList[index], context),
           );
         }),
       ),
@@ -71,8 +74,8 @@ class _FridgePage extends State<FridgePage>{
               Icons.search,
               color: AppColors().ligh_grey,
             ),
-            onPressed: () {
-              // do something
+            onPressed: () async  {
+              // search product name
             },
           ),
           IconButton(
@@ -100,8 +103,17 @@ class _FridgePage extends State<FridgePage>{
       ),
       body: futureBuilder,
       floatingActionButton: FloatingActionButton(
-        onPressed: (){
-
+        onPressed: () async {
+           final result = await Navigator.of(context).push(
+            CupertinoPageRoute<Product>(
+              fullscreenDialog: false,
+              builder: (BuildContext context) => AddProductPage(serverRepository: widget.serverRepository, action: false),
+            ),
+          );
+           Product product = result;
+           widget.serverRepository.addProduct(product.name, product.expirationDate, product.quantity, product.price);
+           setState(() {
+            });
         },
         child: Icon(Icons.add,size: 40,color: AppColors().ligh_grey),
         backgroundColor: AppColors().navy,
@@ -110,13 +122,21 @@ class _FridgePage extends State<FridgePage>{
   }
 }
 
-Widget productCard(Product product){
+Widget productCard(Product product, context){
     return GridTile(
       child: Container(
         decoration: BoxDecoration(border: Border(bottom : BorderSide(color: Colors.black, width: 0.5)), ),
         child: Padding(
           padding: EdgeInsets.all(20),
-          child: Image.asset("assets/${product.name}.png",),
+          child: FlatButton(
+            onPressed: () {
+              showDialog(
+              context: context,
+              builder: (_) => FunkyOverlay(product: product),
+            );},
+            padding: EdgeInsets.all(0.0),
+            child: Image.asset("assets/${product.name}.png"),
+          ),
         ),
       )
     );

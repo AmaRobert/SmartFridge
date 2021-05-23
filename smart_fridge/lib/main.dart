@@ -1,17 +1,25 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:smart_fridge/view/FridgePage.dart';
 import 'package:smart_fridge/view/ShoppingPage.dart';
 import 'package:smart_fridge/view/RecipesPage.dart';
 import 'package:smart_fridge/view/StatisticsPage.dart';
 import 'package:smart_fridge/utils/AppColors.dart';
+import 'package:smart_fridge/view/authenticate/WelcomePage.dart';
 
-void main() => runApp(MyApp());
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(MyApp());
+}
+
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-    home: MyBottomNavigationBar(),
+    home: WelcomePage(),
     );
   }
 }

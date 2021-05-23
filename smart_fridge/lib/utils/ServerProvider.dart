@@ -1,9 +1,10 @@
 import 'package:smart_fridge/models/Product.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ServerProvider{
-  final String url = "http://192.168.1.220:3007/";
+  final String url = "http://192.168.100.3:3007/";
 
   ServerProvider._();
 
