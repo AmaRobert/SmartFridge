@@ -1,40 +1,56 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:smart_fridge/models/Product.dart';
 import 'package:smart_fridge/utils/AppColors.dart';
-import 'package:smart_fridge/utils/ServerProvider.dart';
-import 'package:smart_fridge/view_models/IconsList.dart';
-import 'package:smart_fridge/view_models/RepositoryServer.dart';
 import 'package:smart_fridge/view/AddProductPage.dart';
+import 'package:smart_fridge/view/AddByBarcodePage.dart';
+import 'package:smart_fridge/view/authenticate/LogoutPage.dart';
 
+
+import 'package:uuid/uuid.dart';
+import 'package:smart_fridge/utils/flutterfire.dart';
 import 'FunkyDialog.dart';
 
 class FridgePage extends StatefulWidget{
   State<StatefulWidget> createState() => _FridgePage();
-  RepositoryServer serverRepository = RepositoryServer();
 }
 
 class _FridgePage extends State<FridgePage>{
-
+  String barCode = "Unknown";
   @override
   void initState(){
     super.initState();
-    widget.serverRepository.init();
 
   }
-  Future<List<Product>> _getData() async {
-    return await ServerProvider.server.fetchProducts();
+  Future<void> scanBarCode() async{
+    try{
+      final barCode = await FlutterBarcodeScanner.scanBarcode('#ff6666',
+          "Cancel",
+          true,
+          ScanMode.BARCODE);
+
+      if(!mounted) return;
+      setState(() {
+        this.barCode = barCode;
+        print(barCode);
+      });
+    } on PlatformException{
+      barCode = 'Failed to get platform version.';
+    }
   }
 
   Widget createGridView(BuildContext context, AsyncSnapshot snapshot) {
-    List<Product> productList = snapshot.data;
-    widget.serverRepository.productList = productList;
+      List<DocumentSnapshot> productList = snapshot.data.docs;
     return new Container(
       child: GridView.count(
         crossAxisCount: 4,
-        children: List.generate(widget.serverRepository.size(), (index){
+        children: List.generate(productList.length, (index){
           return Center(
-            child: productCard(productList[index], context),
+            child: productCard(Product(name:  productList.elementAt(index).data()['Name'], quantity: productList.elementAt(index).data()['Quantity'],price: productList.elementAt(index).data()['Price'],expirationDate: productList.elementAt(index).data()['ExpirationDate'], imageUrl: productList.elementAt(index).data()['ImageUrl']), context),
           );
         }),
       ),
@@ -43,7 +59,10 @@ class _FridgePage extends State<FridgePage>{
   @override
   Widget build(BuildContext context) {
     var futureBuilder = new FutureBuilder(
-      future: _getData(),
+      future: FirebaseFirestore.instance
+        .collection('Users')
+        .doc(FirebaseAuth.instance.currentUser.uid)
+        .collection('Products').get(),
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         switch (snapshot.connectionState) {
           case ConnectionState.none:
@@ -95,30 +114,77 @@ class _FridgePage extends State<FridgePage>{
               color: AppColors().ligh_grey,
             ),
             onPressed: () {
-              // do something
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => LogoutPage(),
+                ),
+              );
             },
           ),
 
         ],
       ),
       body: futureBuilder,
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-           final result = await Navigator.of(context).push(
-            CupertinoPageRoute<Product>(
-              fullscreenDialog: false,
-              builder: (BuildContext context) => AddProductPage(serverRepository: widget.serverRepository, action: false),
+      floatingActionButton: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            FloatingActionButton(
+              child: Icon(
+                  Icons.camera_alt,
+                  size: 30,
+                  color: AppColors().ligh_grey
+              ),
+              backgroundColor: AppColors().navy,
+              onPressed: () async{
+                await scanBarCode();
+                bool ceva = await barcodeExists(barCode);
+                // barcode exists
+                if(ceva){
+                  Product product = await getProductByBarcode(barCode);
+                  final result = await Navigator.of(context).push(
+                    CupertinoPageRoute<Product>(
+                      fullscreenDialog: false,
+                      builder: (BuildContext context) => AddProductPage(product: product, action: true, url: product.imageUrl),
+                    ),
+                  );
+                }else{
+                  // barcode doesn't exist
+                  final result = await Navigator.of(context).push(
+                    CupertinoPageRoute<Product>(
+                      fullscreenDialog: false,
+                      builder: (BuildContext context) => AddByBarcodePage(barcode: this.barCode,),
+                    ),
+                  );
+                }
+              },
+              heroTag: null,
             ),
-          );
-           Product product = result;
-           widget.serverRepository.addProduct(product.name, product.expirationDate, product.quantity, product.price);
-           setState(() {
-            });
-        },
-        child: Icon(Icons.add,size: 40,color: AppColors().ligh_grey),
-        backgroundColor: AppColors().navy,
-      ),
+            SizedBox(
+              height: 10,
+            ),
+            FloatingActionButton(
+              onPressed: () async {
+                String id = Uuid().v4();
+                final result = await Navigator.of(context).push(
+                  CupertinoPageRoute<Product>(
+                    fullscreenDialog: false,
+                    builder: (BuildContext context) => AddProductPage(action: false, id: id),
+                ),
+                );
+                Product product = result;
+                setState(() {
+                });
+              },
+              child: Icon(Icons.add,size: 40,color: AppColors().ligh_grey),
+              backgroundColor: AppColors().navy,
+            ),
+          ]
+      )
+
     );
+
+
   }
 }
 
@@ -135,9 +201,21 @@ Widget productCard(Product product, context){
               builder: (_) => FunkyOverlay(product: product),
             );},
             padding: EdgeInsets.all(0.0),
-            child: Image.asset("assets/${product.name}.png"),
+            child:
+            new Container(
+                width: 190.0,
+                height: 190.0,
+                decoration: new BoxDecoration(
+                    shape: BoxShape.circle,
+                    image: new DecorationImage(
+                        fit: BoxFit.fill,
+                        image: new NetworkImage(
+                            product.imageUrl)
+                    )
+                )),
           ),
         ),
       )
     );
 }
+

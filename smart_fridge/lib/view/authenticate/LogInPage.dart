@@ -6,6 +6,7 @@ import 'package:smart_fridge/utils/AppColors.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:smart_fridge/main.dart';
+import 'package:smart_fridge/utils/flutterfire.dart';
 import 'package:smart_fridge/view/authenticate/RegisterPage.dart';
 
 class LogInPage extends StatefulWidget {
@@ -20,6 +21,7 @@ class _LogInPageState extends State<LogInPage> {
 
   final TextEditingController nameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  bool _obscureText = false;
 
   @override
   Widget build(BuildContext context) {
@@ -57,27 +59,59 @@ class _LogInPageState extends State<LogInPage> {
                 _buildTextField(
                     nameController, Icons.account_circle, 'Username'),
                 SizedBox(height: 20),
-                _buildTextField(passwordController, Icons.lock, 'Password'),
+              new Container(
+                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                    color: AppColors().dark_grey, border: Border.all(color: Colors.blue)),
+                child: TextField(
+                  style: TextStyle(color: Colors.white),
+                keyboardType: TextInputType.text,
+                  controller: passwordController,
+                  obscureText: !_obscureText,//This will obscure text dynamically
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    contentPadding: EdgeInsets.symmetric(horizontal: 10),
+                      labelStyle: TextStyle(color: Colors.white),
+                      icon: Icon(
+                        Icons.lock,
+                        color: Colors.white,
+                      ),
+                      // prefix: Icon(icon),
+                      border: InputBorder.none,
+                    // Here is key idea
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        // Based on passwordVisible state choose the icon
+                        _obscureText
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                        color: Theme.of(context).primaryColorDark,
+                      ),
+                      onPressed: () {
+                        // Update the state i.e. toogle the state of passwordVisible variable
+                        setState(() {
+                          _obscureText = !_obscureText;
+                        });
+                      },
+                    ),
+                  ),
+                ),
+              ),
                 SizedBox(height: 30),
                 MaterialButton(
                   elevation: 0,
                   minWidth: double.maxFinite,
                   height: 50,
                   onPressed: () async {
-
-                    try {
-                      UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
-                          email: nameController.text,
-                          password: passwordController.text
+                    bool shouldNavigate =
+                    await signIn(nameController.text, passwordController.text);
+                    if (shouldNavigate) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MyBottomNavigationBar(),
+                        ),
                       );
-                      print(nameController.text);
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => MyBottomNavigationBar()));
-                    } on FirebaseAuthException catch (e) {
-                      if (e.code == 'user-not-found') {
-                        print('No user found for that email.');
-                      } else if (e.code == 'wrong-password') {
-                        print('Wrong password provided for that user.');
-                      }
                     }
                     },
                   color: AppColors().navy,

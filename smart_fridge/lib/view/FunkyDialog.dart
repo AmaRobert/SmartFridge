@@ -18,7 +18,7 @@ class FunkyOverlayState extends State<FunkyOverlay>
   @override
   void initState() {
     super.initState();
-
+    print(widget.product.imageUrl);
     controller =
         AnimationController(vsync: this, duration: Duration(milliseconds: 450));
     scaleAnimation =

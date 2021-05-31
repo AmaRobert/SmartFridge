@@ -1,26 +1,29 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:smart_fridge/utils/AppColors.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:smart_fridge/main.dart';
 import 'package:smart_fridge/utils/flutterfire.dart';
+import 'package:smart_fridge/view/authenticate/RegisterPage.dart';
+
 import 'package:smart_fridge/view/authenticate/LogInPage.dart';
 
-import '../../main.dart';
-
-class RegisterPage extends StatefulWidget {
+class LogoutPage extends StatefulWidget {
   @override
-  _RegisterPageState createState() => _RegisterPageState();
+  _LogoutPage createState() => _LogoutPage();
 }
 
-class _RegisterPageState extends State<RegisterPage> {
+class _LogoutPage extends State<LogoutPage> {
+
   final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
   final GoogleSignIn googleSignIn = GoogleSignIn();
 
   final TextEditingController nameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -39,23 +42,16 @@ class _RegisterPageState extends State<RegisterPage> {
               children: <Widget>[
                 SizedBox(height: 50,),
                 Text(
-                  'Register to continue',
+                  'Your profile',
                   textAlign: TextAlign.center,
                   style:
                   GoogleFonts.openSans(color: Colors.white, fontSize: 28),
-                ),
-                SizedBox(height: 20),
-                Text(
-                  'Enter your email and password below to continue to the The Smart Fridge and let the experience begin!',
-                  textAlign: TextAlign.center,
-                  style:
-                  GoogleFonts.openSans(color: Colors.white, fontSize: 14),
                 ),
                 SizedBox(
                   height: 50,
                 ),
                 _buildTextField(
-                    nameController, Icons.account_circle, 'Email'),
+                    nameController, Icons.account_circle, 'Username'),
                 SizedBox(height: 20),
                 _buildTextField(passwordController, Icons.lock, 'Password'),
                 SizedBox(height: 30),
@@ -64,47 +60,20 @@ class _RegisterPageState extends State<RegisterPage> {
                   minWidth: double.maxFinite,
                   height: 50,
                   onPressed: () async {
-                    bool shouldNavigate = await register(nameController.text, passwordController.text);
-                    print(shouldNavigate);
-                    if (shouldNavigate) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => LogInPage(),
-                        ),
-                      );
-                    }
+
+                    await FirebaseAuth.instance.signOut();
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                        builder: (BuildContext context) => LogInPage(),
+                      ),
+                          (route) => false,
+                    );
+
                   },
                   color: AppColors().navy,
-                  child: Text('Register',
+                  child: Text('Logout',
                       style: TextStyle(color: Colors.white, fontSize: 16)),
-                  textColor: Colors.white,
-                ),
-                SizedBox(height: 20),
-                MaterialButton(
-                  elevation: 0,
-                  minWidth: double.maxFinite,
-                  height: 50,
-                  onPressed: () async {
-
-                    final GoogleSignInAccount googleUser = await googleSignIn.signIn();
-                    final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-                    final AuthCredential credential = GoogleAuthProvider.credential(
-                        idToken:  googleAuth.idToken, accessToken: googleAuth.accessToken
-                    );
-                    final UserCredential googleUserCredential =
-                    await FirebaseAuth.instance.signInWithCredential(credential);
-                  },
-                  color: Colors.blue,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Icon(FontAwesomeIcons.google),
-                      SizedBox(width: 10),
-                      Text('Log-in using Google',
-                          style: TextStyle(color: Colors.white, fontSize: 16)),
-                    ],
-                  ),
                   textColor: Colors.white,
                 ),
               ],

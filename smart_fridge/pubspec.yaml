@@ -33,7 +33,11 @@ dependencies:
   font_awesome_flutter:
   google_fonts:
   cloud_firestore: "^0.16.0+1"
-
+  image_picker:
+  firebase_storage:
+  uuid:
+  firebase_ml_vision:
+  camera:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
