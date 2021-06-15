@@ -1,13 +1,12 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:smart_fridge/view/FridgePage.dart';
-import 'package:smart_fridge/view/ShoppingPage.dart';
-import 'package:smart_fridge/view/RecipesPage.dart';
-import 'package:smart_fridge/view/StatisticsPage.dart';
+import 'package:smart_fridge/fridge/FridgePage.dart';
+import 'package:smart_fridge/recipe/RecipesPage.dart';
+import 'package:smart_fridge/shop/ShoppingPage.dart';
 import 'package:smart_fridge/utils/AppColors.dart';
-import 'package:smart_fridge/view/authenticate/WelcomePage.dart';
-
-
+import 'package:smart_fridge/utils/flutterfire.dart';
+import 'package:smart_fridge/welcome/WelcomePage.dart';
+import 'package:smart_fridge/authenticate/LogoutPage.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
@@ -18,8 +17,17 @@ void main() async {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-    home: WelcomePage(),
+    return MaterialApp(debugShowCheckedModeBanner: false,
+      home: FutureBuilder(
+          future: getCurrentUser(),
+          builder: (context, AsyncSnapshot<dynamic> snapshot) {
+            if(snapshot.hasData) {
+              return MyBottomNavigationBar();
+            }else{
+              return WelcomePage();
+            }
+          }
+      ),
     );
   }
 }
@@ -35,7 +43,7 @@ class _MyBottomNavigationBarState extends State<MyBottomNavigationBar> {
     FridgePage(),
     ShoppingPage(),
     RecipesPage(),
-    StatisticsPage()
+    LogoutPage()
   ];
 
   void onTappedBar(int index){
@@ -70,9 +78,9 @@ class _MyBottomNavigationBarState extends State<MyBottomNavigationBar> {
             label:  "Recipes"
           ),
           BottomNavigationBarItem(
-            icon: new Icon(Icons.analytics),
+            icon: new Icon(Icons.account_circle),
             backgroundColor: AppColors().navy,
-            label:  "Statistics"
+            label:  "Profile"
           ),
         ],
       ),

@@ -1,3 +1,4 @@
+import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -26,6 +27,8 @@ class _AddByBarcodePage extends State<AddByBarcodePage>{
   TextEditingController _priceController = TextEditingController();
   FocusNode _productNameFocus;
   File _image;
+  File _imageRecognition;
+  ImagePicker imagePicker;
 
   @override
   void initState() {
@@ -44,6 +47,29 @@ class _AddByBarcodePage extends State<AddByBarcodePage>{
       });
     }
 
+    Future performLabeling() async{
+      final FirebaseVisionImage firebaseVisionImage = FirebaseVisionImage.fromFile(_imageRecognition);
+      final TextRecognizer recognizer = FirebaseVision.instance.textRecognizer();
+      VisionText visionText = await recognizer.processImage(firebaseVisionImage);
+      var regExp1 = RegExp(r"(0[1-9]|[12][0-9]|3[01])[- /.](0[1-9]|1[012])[- /.](19|20)*\d\d");
+      String result = "";
+      setState(() {
+        for(TextBlock block in visionText.blocks){
+          final String txt = block.text;
+          for(TextLine line in block.lines){
+            for(TextElement element in line.elements){
+              result += element.text + "";
+            }
+          }
+          result += "\n\n";
+        }
+        String match = regExp1.stringMatch(result);
+        print(result);
+        print(match);
+        _expirationDateController.text = match;
+      });
+    }
+
     Future<void> uploadFile() async {
       try {
         await FirebaseStorage.instance
@@ -52,6 +78,16 @@ class _AddByBarcodePage extends State<AddByBarcodePage>{
       } on FirebaseException catch (e) {
         // e.g, e.code == 'canceled'
       }
+    }
+    Future getImageRecognition() async {
+      var image = await ImagePicker.pickImage(source: ImageSource.camera);
+      _imageRecognition = File(image.path);
+      setState(() {
+        _imageRecognition;
+
+        performLabeling();
+        print('Image Path $_imageRecognition');
+      });
     }
 
     return Scaffold(
@@ -124,23 +160,83 @@ class _AddByBarcodePage extends State<AddByBarcodePage>{
             ),
             SizedBox(height: 10),
             Padding(
-              padding: EdgeInsets.all(20),
-              child: TextField(
-                controller: _expirationDateController,
-                focusNode: _productNameFocus,
-                decoration: InputDecoration(
-                  labelText: "Expiration Date",
-                  labelStyle: TextStyle(color: Colors.black),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color:Colors.grey),
-                    borderRadius: BorderRadius.circular(5.0),
+              padding: const EdgeInsets.all(20.0),
+              child: Row(children: <Widget>[
+                Expanded(
+                  child: TextField(
+                    textAlign: TextAlign.center,
+                    controller: _expirationDateController,
+                    focusNode: _productNameFocus,
+                    decoration: InputDecoration(
+                      prefixIcon: IconButton(
+                        icon: Icon(
+                          Icons.calendar_today,
+                          color: AppColors().dark_grey,
+                        ),
+                        onPressed: () {
+                          // showCupertinoModalPopup is a built-in function of the cupertino library
+                          showCupertinoModalPopup(
+                              context: context,
+                              builder: (_) => Container(
+                                height: 200,
+                                color: Color.fromARGB(255, 255, 255, 255),
+                                child: Column(
+                                  children: [
+                                    Container(
+                                      height: 100,
+                                      child: CupertinoDatePicker(
+                                          mode: CupertinoDatePickerMode.date,
+                                          initialDateTime: DateTime.now(),
+                                          onDateTimeChanged: (val) {
+                                            setState(() {
+                                              _expirationDateController.text = val.day.toString() + "/" + val.month.toString() + "/" + val.year.toString();
+                                            });
+                                          }),
+                                    ),
 
+                                    // Close the modal
+                                    CupertinoButton(
+                                        child: Text('OK'),
+                                        onPressed: (){
+                                          Navigator.of(context).pop();
+                                          setState(() {
+
+                                          });
+                                        }
+                                    )
+                                  ],
+                                ),
+                              ));
+
+                        },
+                      ),
+                      border: InputBorder.none,
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          Icons.camera_alt,
+                          color: AppColors().dark_grey,
+                        ),
+                        onPressed: () {
+                          // Update the state i.e. toogle the state of passwordVisible variable
+                          print("pressed");
+                          getImageRecognition();
+                          // showCupertinoModalPopup is a built-in function of the cupertino library
+                        },
+                      ),
+                      labelText: "Expiration Date",
+                      labelStyle: TextStyle(color: Colors.black),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.grey),
+                        borderRadius: BorderRadius.circular(5.0),
+                      ),
+                      enabledBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(color: Colors.grey),
+                        borderRadius: BorderRadius.circular(5.0),
+                      ),
+                    ),
                   ),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.grey),
-                    borderRadius: BorderRadius.circular(5.0),),
                 ),
-              ),
+              ]),
             ),
             SizedBox(height: 10),
             Padding(
@@ -193,7 +289,7 @@ class _AddByBarcodePage extends State<AddByBarcodePage>{
                 onPressed: () async {
                   await uploadFile().then((value) async {
                     String url = await getImageUrl(widget.barcode);
-                    await addProductByBarcode(widget.barcode, _productNameController.text, _quantityController.text, _priceController.text, _expirationDateController.text, url);
+                    await addProductByBarcode(widget.barcode, _productNameController.text, _quantityController.text, _priceController.text, "", url);
                     await addProduct(widget.barcode, _productNameController.text, _quantityController.text, _priceController.text, _expirationDateController.text, url);
                     Navigator.pop(context);
                   });

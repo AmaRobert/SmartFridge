@@ -14,6 +14,22 @@
       },
       "oauth_client": [
         {
+          "client_id": "525928419466-0edlm7l49uh1ftd104jkfih10t8toord.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.smart_fridge",
+            "certificate_hash": "0258cd026a38193604e5be50252e87c6ec47b7a6"
+          }
+        },
+        {
+          "client_id": "525928419466-6hue8lqfj34jk1p4n67hq1dlp2uamvro.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.smart_fridge",
+            "certificate_hash": "7fe290eae0689a9a5bdaa6642ac895dcf58c6468"
+          }
+        },
+        {
           "client_id": "525928419466-h1ac4fh4v3fr6f7p2aoe4e2ajl6cmrrc.apps.googleusercontent.com",
           "client_type": 3
         }

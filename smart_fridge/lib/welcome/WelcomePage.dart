@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:smart_fridge/utils/AppColors.dart';
-import 'package:smart_fridge/view/authenticate/LogInPage.dart';
+import 'file:///D:/Facultate/Facultate%20Semestrul%206/PBT/SmartFridge/smart_fridge/lib/authenticate/LogInPage.dart';
 
 class WelcomePage extends StatefulWidget {
   @override

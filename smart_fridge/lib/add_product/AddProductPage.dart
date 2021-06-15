@@ -6,8 +6,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:smart_fridge/models/Product.dart';
 import 'package:smart_fridge/utils/AppColors.dart';
+import 'package:smart_fridge/utils/NotificationPlugin.dart';
 import 'package:smart_fridge/utils/flutterfire.dart';
-import 'package:smart_fridge/utils/ScannerUtils.dart';
 
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_picker/image_picker.dart';
@@ -59,7 +59,7 @@ class _AddProductPage extends State<AddProductPage> {
       final FirebaseVisionImage firebaseVisionImage = FirebaseVisionImage.fromFile(_imageRecognition);
       final TextRecognizer recognizer = FirebaseVision.instance.textRecognizer();
       VisionText visionText = await recognizer.processImage(firebaseVisionImage);
-      var regExp1 = RegExp(r"(0[1-9]|[12][0-9]|3[01])[- /.](0[1-9]|1[012])[- /.](19|20)\d\d");
+      var regExp1 = RegExp(r"(0[1-9]|[12][0-9]|3[01])[- /.](0[1-9]|1[012])[- /.](19|20)*\d\d");
       String result = "";
       setState(() {
         for(TextBlock block in visionText.blocks){
@@ -72,6 +72,7 @@ class _AddProductPage extends State<AddProductPage> {
           result += "\n\n";
         }
         String match = regExp1.stringMatch(result);
+        print(result);
         print(match);
         _expirationDateController.text = match;
       });
@@ -80,13 +81,7 @@ class _AddProductPage extends State<AddProductPage> {
     Future getImageRecognition() async {
       var image = await ImagePicker.pickImage(source: ImageSource.camera);
       _imageRecognition = File(image.path);
-      setState(() {
-        _imageRecognition;
-
-        performLabeling();
-        widget.url = null;
-        print('Image Path $_imageRecognition');
-      });
+      performLabeling();
     }
 
 
@@ -156,6 +151,7 @@ class _AddProductPage extends State<AddProductPage> {
             Padding(
               padding: EdgeInsets.all(20),
               child: TextField(
+                key: Key("nameField"),
                 controller: _productNameController
                   ..text = widget.action != false ? widget.product.name : "",
                 focusNode: _productNameFocus,
@@ -181,13 +177,11 @@ class _AddProductPage extends State<AddProductPage> {
                 Expanded(
                   child: TextField(
                     textAlign: TextAlign.center,
-                    controller: _expirationDateController
-                      ..text = widget.action != false
-                          ? widget.product.expirationDate
-                          : _expirationDateController.text,
+                    controller: _expirationDateController,
                     focusNode: _productNameFocus,
                     decoration: InputDecoration(
                       prefixIcon: IconButton(
+                        key: Key("expirationDateField"),
                         icon: Icon(
                           Icons.calendar_today,
                           color: AppColors().dark_grey,
@@ -204,6 +198,7 @@ class _AddProductPage extends State<AddProductPage> {
                                           Container(
                                             height: 100,
                                             child: CupertinoDatePicker(
+                                                key: Key("datePicker"),
                                               mode: CupertinoDatePickerMode.date,
                                                 initialDateTime: DateTime.now(),
                                                 onDateTimeChanged: (val) {
@@ -215,6 +210,7 @@ class _AddProductPage extends State<AddProductPage> {
 
                                           // Close the modal
                                           CupertinoButton(
+                                            key: Key("datePickerOk"),
                                             child: Text('OK'),
                                             onPressed: (){
                                               Navigator.of(context).pop();
@@ -261,6 +257,7 @@ class _AddProductPage extends State<AddProductPage> {
             Padding(
               padding: EdgeInsets.all(20),
               child: TextField(
+                key: Key("quantityField"),
                 controller: _quantityController
                   ..text =
                       widget.action != false ? widget.product.quantity : "",
@@ -283,6 +280,7 @@ class _AddProductPage extends State<AddProductPage> {
             Padding(
               padding: EdgeInsets.all(20),
               child: TextField(
+                key: Key("priceField"),
                 controller: _priceController
                   ..text = widget.action != false ? widget.product.price : "",
                 focusNode: _productNameFocus,
@@ -309,8 +307,9 @@ class _AddProductPage extends State<AddProductPage> {
                 textColor: AppColors().ligh_grey,
                 padding: EdgeInsets.all(16),
                 onPressed: () async {
+                  bool isAdded = false;
                   if (widget.action) {
-                    await addProduct(
+                    isAdded = await addProduct(
                         widget.product.id,
                         _productNameController.text,
                         _quantityController.text,
@@ -319,8 +318,9 @@ class _AddProductPage extends State<AddProductPage> {
                         widget.url);
                   } else {
                     // change product widget.url
-                    await uploadFile(widget.id);
-                    String url = await getImageUrl(widget.id);
+                    //await uploadFile(widget.id);
+                    //String url = await getImageUrl(widget.id);
+                    String url = "https://socialistmodernism.com/wp-content/uploads/2017/07/placeholder-image.png";
                     await addProductByBarcode(
                         widget.id,
                         _productNameController.text,
@@ -328,7 +328,7 @@ class _AddProductPage extends State<AddProductPage> {
                         _priceController.text,
                         _expirationDateController.text,
                         url);
-                    await addProduct(
+                    isAdded = await addProduct(
                         widget.id,
                         _productNameController.text,
                         _quantityController.text,
@@ -336,6 +336,8 @@ class _AddProductPage extends State<AddProductPage> {
                         _expirationDateController.text,
                         url);
                   }
+                  if(isAdded)
+                    await notificationPlugin.scheduleNotification(_productNameController.text, _expirationDateController.text);
                   Navigator.pop(context);
                 },
                 shape: RoundedRectangleBorder(

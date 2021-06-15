@@ -6,9 +6,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:smart_fridge/utils/AppColors.dart';
 import 'package:smart_fridge/utils/flutterfire.dart';
-import 'package:smart_fridge/view/authenticate/LogInPage.dart';
+import 'file:///D:/Facultate/Facultate%20Semestrul%206/PBT/SmartFridge/smart_fridge/lib/authenticate/LogInPage.dart';
 
-import '../../main.dart';
+import '../main.dart';
 
 class RegisterPage extends StatefulWidget {
   @override
@@ -78,33 +78,6 @@ class _RegisterPageState extends State<RegisterPage> {
                   color: AppColors().navy,
                   child: Text('Register',
                       style: TextStyle(color: Colors.white, fontSize: 16)),
-                  textColor: Colors.white,
-                ),
-                SizedBox(height: 20),
-                MaterialButton(
-                  elevation: 0,
-                  minWidth: double.maxFinite,
-                  height: 50,
-                  onPressed: () async {
-
-                    final GoogleSignInAccount googleUser = await googleSignIn.signIn();
-                    final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-                    final AuthCredential credential = GoogleAuthProvider.credential(
-                        idToken:  googleAuth.idToken, accessToken: googleAuth.accessToken
-                    );
-                    final UserCredential googleUserCredential =
-                    await FirebaseAuth.instance.signInWithCredential(credential);
-                  },
-                  color: Colors.blue,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Icon(FontAwesomeIcons.google),
-                      SizedBox(width: 10),
-                      Text('Log-in using Google',
-                          style: TextStyle(color: Colors.white, fontSize: 16)),
-                    ],
-                  ),
                   textColor: Colors.white,
                 ),
               ],

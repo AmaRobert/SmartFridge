@@ -7,7 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:smart_fridge/main.dart';
 import 'package:smart_fridge/utils/flutterfire.dart';
-import 'package:smart_fridge/view/authenticate/RegisterPage.dart';
+import 'file:///D:/Facultate/Facultate%20Semestrul%206/PBT/SmartFridge/smart_fridge/lib/authenticate/RegisterPage.dart';
 
 class LogInPage extends StatefulWidget {
   @override
@@ -64,6 +64,7 @@ class _LogInPageState extends State<LogInPage> {
                 decoration: BoxDecoration(
                     color: AppColors().dark_grey, border: Border.all(color: Colors.blue)),
                 child: TextField(
+                  key: Key("PasswordField"),
                   style: TextStyle(color: Colors.white),
                 keyboardType: TextInputType.text,
                   controller: passwordController,
@@ -138,13 +139,20 @@ class _LogInPageState extends State<LogInPage> {
                   minWidth: double.maxFinite,
                   height: 50,
                   onPressed: () async {
+                    final googleUser = await googleSignIn.signIn();
+                    if(googleUser != null){
 
-                    final GoogleSignInAccount googleUser = await googleSignIn.signIn();
-                    final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-                    final AuthCredential credential = GoogleAuthProvider.credential(
-                        idToken:  googleAuth.idToken, accessToken: googleAuth.accessToken
-                    );
-                    final User user = (await firebaseAuth.signInWithCredential(credential)).user;
+                      final googleAuth = await googleUser.authentication;
+                      final credentials = GoogleAuthProvider.credential(
+                          accessToken: googleAuth.accessToken,
+                          idToken: googleAuth.idToken
+                      );
+
+                      UserCredential userCredential= await FirebaseAuth.instance.signInWithCredential(credentials);
+                      if (userCredential.credential.providerId != null){
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => MyBottomNavigationBar()));
+                      }
+                    }
                   },
                   color: Colors.blue,
                   child: Row(
@@ -171,6 +179,7 @@ class _LogInPageState extends State<LogInPage> {
       decoration: BoxDecoration(
           color: AppColors().dark_grey, border: Border.all(color: Colors.blue)),
       child: TextField(
+        key: Key("UsernameField"),
         controller: controller,
         style: TextStyle(color: Colors.white),
         decoration: InputDecoration(
